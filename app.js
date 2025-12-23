@@ -1,32 +1,9 @@
+// Telegram WebApp
 const tg = window.Telegram.WebApp
 tg.ready()
 tg.expand()
 
-// ---------- USER ----------
-const user = tg.initDataUnsafe?.user
-document.getElementById("user").innerText =
-  user ? `Игрок: ${user.first_name}` : "Игрок: Гость"
-
-// ---------- СОХРАНЕНИЕ ----------
-const save = () => {
-  localStorage.setItem("player", JSON.stringify(player))
-  localStorage.setItem("cards", JSON.stringify(cards))
-}
-
-const load = () => {
-  const p = localStorage.getItem("player")
-  const c = localStorage.getItem("cards")
-  if (p) Object.assign(player, JSON.parse(p))
-  if (c) {
-    const saved = JSON.parse(c)
-    cards.forEach(card => {
-      const s = saved.find(x => x.id === card.id)
-      if (s) card.level = s.level
-    })
-  }
-}
-
-// ---------- СОСТОЯНИЕ ----------
+// ---------- PLAYER ----------
 const player = {
   coins: 0,
   totalEarned: 0,
@@ -34,18 +11,17 @@ const player = {
   clickPower: 1
 }
 
-// ---------- КАРТОЧКИ ----------
+// ---------- CARDS ----------
 const cards = [
   { id: 1, name: "Ферма", basePrice: 50, incomePerSecond: 1, level: 0 },
   { id: 2, name: "Завод", basePrice: 200, incomePerSecond: 5, level: 0, unlockLevel: 3 }
 ]
 
-// ---------- ЛОГИКА ----------
+// ---------- FUNCTIONS ----------
 function clickCoin() {
   player.coins += player.clickPower
   player.totalEarned += player.clickPower
   updateLevel()
-  save()
   render()
 }
 
@@ -64,24 +40,22 @@ function buyCard(id) {
   if (player.coins >= price) {
     player.coins -= price
     card.level++
-    save()
     render()
   }
 }
 
-// ---------- ПАССИВ ----------
+// ---------- PASSIVE INCOME ----------
 setInterval(() => {
   let income = 0
   cards.forEach(c => income += c.incomePerSecond * c.level)
   player.coins += income
   player.totalEarned += income
   updateLevel()
-  save()
   render()
 }, 1000)
 
-// ---------- UI ----------
- function render() {
+// ---------- RENDER ----------
+function render() {
   document.getElementById("coins").innerText = player.coins
   document.getElementById("level").innerText = player.level
 
@@ -101,7 +75,7 @@ setInterval(() => {
       </div>
     `
   })
- }
+}
 
-load()
-render()
+// ---------- INIT ----------
+window.onload = () => { render() }
