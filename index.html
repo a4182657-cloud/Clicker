@@ -8,11 +8,27 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: var(--tg-theme-bg-color, #111);
-      color: var(--tg-theme-text-color, #fff);
-      text-align: center;
+    body {<body>
+
+<div class="app">
+
+  <header class="top">
+    <div>💰 <span id="coins">0</span></div>
+    <div>⭐ <span id="level">1</span></div>
+  </header>
+
+  <div class="clicker">
+    <button class="click-btn" onclick="clickCoin()">🖱</button>
+    <div class="click-text">НАЖМИ</div>
+  </div>
+
+  <h3>Улучшения</h3>
+  <div id="cards" class="cards"></div>
+
+</div>
+
+<script src="app.js"></script>
+</body>
     }
     button {
       padding: 12px 20px;
