@@ -1,1 +1,45 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Telegram Clicker</title>
 
+  <!-- Telegram WebApp API -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: var(--tg-theme-bg-color, #111);
+      color: var(--tg-theme-text-color, #fff);
+      text-align: center;
+    }
+    button {
+      padding: 12px 20px;
+      font-size: 18px;
+      margin: 10px;
+    }
+    .card {
+      border: 1px solid #555;
+      padding: 10px;
+      margin: 10px auto;
+      width: 260px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>🖱 Telegram Clicker</h2>
+<p id="user"></p>
+
+<p>💰 Монеты: <span id="coins">0</span></p>
+<p>⭐ Уровень: <span id="level">1</span></p>
+
+<button onclick="clickCoin()">Клик</button>
+
+<h3>🃏 Карточки</h3>
+<div id="cards"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
