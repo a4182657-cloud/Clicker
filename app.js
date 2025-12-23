@@ -81,7 +81,7 @@ setInterval(() => {
 }, 1000)
 
 // ---------- UI ----------
-function render() {
+ function render() {
   document.getElementById("coins").innerText = player.coins
   document.getElementById("level").innerText = player.level
 
@@ -96,12 +96,12 @@ function render() {
         <b>${card.name}</b><br>
         Уровень: ${card.level}<br>
         Доход: ${card.level * card.incomePerSecond}/сек<br>
-        Цена: ${cardPrice(card)}<br>
+        Цена: ${cardPrice(card)}
         <button onclick="buyCard(${card.id})">Купить</button>
       </div>
     `
   })
-}
+ }
 
 load()
 render()
