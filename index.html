@@ -34,12 +34,8 @@ body {
 }
 
 /* Screens */
-.screen {
-  display: none;
-}
-.screen.active {
-  display: block;
-}
+.screen { display: none; }
+.screen.active { display: block; }
 
 /* Clicker */
 .clicker {
@@ -92,10 +88,54 @@ button {
   font-size: 18px;
   padding: 14px 0;
 }
+
+/* OFFLINE MODAL */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.modal.active {
+  display: flex;
+}
+
+.modal-box {
+  background: var(--card);
+  padding: 20px;
+  border-radius: 14px;
+  width: 85%;
+  max-width: 320px;
+  text-align: center;
+}
+
+.modal-box h2 {
+  margin-top: 0;
+}
+
+.modal-box button {
+  width: 100%;
+}
 </style>
 </head>
 
 <body>
+
+<!-- OFFLINE INCOME MODAL -->
+<div id="offlineModal" class="modal">
+  <div class="modal-box">
+    <h2>⭐ Оффлайн доход</h2>
+    <p>Вы отсутствовали:</p>
+    <p><b><span id="offlineTime">0</span> сек</b></p>
+    <p>Получено:</p>
+    <p><b>⭐ <span id="offlineIncome">0</span></b></p>
+    <button onclick="closeOfflineModal()">Забрать</button>
+  </div>
+</div>
 
 <div class="app">
 
@@ -109,9 +149,7 @@ button {
   <div id="screen-click" class="screen active">
     <div class="clicker">
       <button class="click-btn" onclick="clickCoin()">⭐</button>
-
       <p>Сила клика: <b><span id="clickPower">1</span></b></p>
-
       <button onclick="upgradeClick()">🔼 Улучшить клик</button>
       <p>Цена: ⭐ <span id="clickPrice">50</span></p>
     </div>
@@ -131,7 +169,7 @@ button {
 
 </div>
 
-<!-- BOTTOM MENU -->
+<!-- MENU -->
 <div class="menu">
   <button onclick="showScreen('click')">🖱</button>
   <button onclick="showScreen('cards')">🎁</button>
@@ -149,10 +187,11 @@ const player = {
   totalEarned: 0,
   level: 1,
   clickPower: 1,
-  clickLevel: 1
+  clickLevel: 1,
+  lastOnline: Date.now()
 }
 
-/* CARDS (позже просто добавишь img) */
+/* CARDS */
 const cards = [
   { id: 1, name: "🎁 Basic Gift", basePrice: 50, income: 1, level: 0, maxLevel: 10 },
   { id: 2, name: "🎁 Rare Gift", basePrice: 500, income: 10, level: 0, maxLevel: 10, unlock: 1 },
@@ -161,6 +200,7 @@ const cards = [
 
 /* SAVE / LOAD */
 function saveGame() {
+  player.lastOnline = Date.now()
   localStorage.setItem("starsClickerSave", JSON.stringify({ player, cards }))
 }
 
@@ -184,6 +224,40 @@ function updateLevel() {
     need = Math.floor(100 * Math.pow(lvl, 1.5))
   }
   player.level = lvl
+}
+
+/* INCOME */
+function incomePerSecond() {
+  let income = 0
+  cards.forEach(c => income += c.level * c.income)
+  return income
+}
+
+/* OFFLINE INCOME */
+function applyOfflineIncome() {
+  const now = Date.now()
+  const diff = Math.floor((now - player.lastOnline) / 1000)
+  if (diff < 10) return
+
+  const MAX_OFFLINE = 60 * 60 * 8
+  const seconds = Math.min(diff, MAX_OFFLINE)
+  const income = incomePerSecond() * seconds
+
+  if (income > 0) {
+    player.coins += income
+    player.totalEarned += income
+    updateLevel()
+
+    document.getElementById("offlineTime").innerText = seconds
+    document.getElementById("offlineIncome").innerText = income
+    document.getElementById("offlineModal").classList.add("active")
+  }
+}
+
+function closeOfflineModal() {
+  document.getElementById("offlineModal").classList.remove("active")
+  saveGame()
+  render()
 }
 
 /* CLICK */
@@ -234,14 +308,15 @@ function buyCard(id) {
   }
 }
 
-/* PASSIVE INCOME */
+/* PASSIVE ONLINE INCOME */
 setInterval(() => {
-  let income = 0
-  cards.forEach(c => income += c.level * c.income)
-  player.coins += income
-  player.totalEarned += income
-  updateLevel()
-  render()
+  const income = incomePerSecond()
+  if (income > 0) {
+    player.coins += income
+    player.totalEarned += income
+    updateLevel()
+    render()
+  }
 }, 1000)
 
 /* UI */
@@ -262,7 +337,6 @@ function render() {
 
   cards.forEach(card => {
     if (!isUnlocked(card)) return
-
     cardsDiv.innerHTML += `
       <div class="card">
         <b>${card.name}</b><br>
@@ -281,6 +355,7 @@ function render() {
 
 /* START */
 loadGame()
+applyOfflineIncome()
 render()
 </script>
 
