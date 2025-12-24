@@ -1,110 +1,280 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <title>Telegram Clicker</title>
+<meta charset="UTF-8">
+<title>Telegram Clicker</title>
 
-  <!-- Telegram WebApp API -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-  <style>
-    :root {
-      --bg: var(--tg-theme-bg-color, #0f0f0f);
-      --card: var(--tg-theme-secondary-bg-color, #1c1c1c);
-      --text: var(--tg-theme-text-color, #ffffff);
-      --accent: #4ade80;
-    }
+<style>
+:root {
+  --bg: #0f0f0f;
+  --card: #1c1c1c;
+  --text: #ffffff;
+  --accent: #4caf50;
+}
 
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont;
-      background: var(--bg);
-      color: var(--text);
-    }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, sans-serif;
+  padding-bottom: 70px;
+}
 
-    .app {
-      max-width: 420px;
-      margin: auto;
-      padding: 12px;
-    }
+.app {
+  padding: 15px;
+}
 
-    .top {
-      display: flex;
-      justify-content: space-between;
-      font-size: 18px;
-      margin-bottom: 16px;
-    }
+.top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
 
-    .clicker {
-      text-align: center;
-      margin: 30px 0;
-    }
+.screen {
+  display: none;
+}
 
-    .click-btn {
-      width: 160px;
-      height: 160px;
-      border-radius: 50%;
-      border: none;
-      font-size: 48px;
-      background: var(--accent);
-      color: #000;
-      box-shadow: 0 8px 20px rgba(0,0,0,.4);
-      transition: transform .1s ease;
-      cursor: pointer;
-    }
+.screen.active {
+  display: block;
+}
 
-    .click-btn:active {
-      transform: scale(0.95);
-    }
+.clicker {
+  text-align: center;
+  margin-top: 30px;
+}
 
-    .click-text {
-      margin-top: 10px;
-      opacity: 0.7;
-    }
+.click-btn {
+  width: 140px;
+  height: 140px;
+  font-size: 40px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent);
+  color: white;
+}
 
-    .cards {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
+button {
+  padding: 10px;
+  margin-top: 10px;
+  background: var(--accent);
+  border: none;
+  color: white;
+  border-radius: 6px;
+  font-size: 14px;
+}
 
-    .card {
-      background: var(--card);
-      border-radius: 12px;
-      padding: 12px;
-    }
+.cards .card {
+  background: var(--card);
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 8px;
+}
 
-    .card button {
-      width: 100%;
-      padding: 10px;
-      border: none;
-      border-radius: 8px;
-      background: var(--accent);
-      color: #000;
-      font-weight: bold;
-      cursor: pointer;
-    }
-  </style>
+.menu {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  background: #111;
+  border-top: 1px solid #333;
+}
+
+.menu button {
+  flex: 1;
+  background: none;
+  color: white;
+  font-size: 18px;
+}
+</style>
 </head>
+
 <body>
 
 <div class="app">
 
-  <header class="top">
+  <div class="top">
     <div>💰 <span id="coins">0</span></div>
     <div>⭐ <span id="level">1</span></div>
-  </header>
-
-  <div class="clicker">
-    <button class="click-btn" onclick="clickCoin()">🖱</button>
-    <div class="click-text">НАЖМИ</div>
   </div>
 
-  <h3>Улучшения</h3>
-  <div id="cards" class="cards"></div>
+  <!-- CLICK SCREEN -->
+  <div id="screen-click" class="screen active">
+    <div class="clicker">
+      <button class="click-btn" onclick="clickCoin()">🖱</button>
+      <p>Сила клика: <span id="clickPower">1</span></p>
+      <button onclick="upgradeClick()">🔼 Улучшить клик</button>
+      <p>Цена: <span id="clickPrice">50</span></p>
+    </div>
+  </div>
+
+  <!-- CARDS SCREEN -->
+  <div id="screen-cards" class="screen">
+    <h3>🃏 Карточки</h3>
+    <div id="cards" class="cards"></div>
+  </div>
+
+  <!-- STATS SCREEN -->
+  <div id="screen-stats" class="screen">
+    <h3>📊 Статистика</h3>
+    <p>Всего заработано: <span id="totalEarned">0</span></p>
+  </div>
 
 </div>
 
-<script src="app.js"></script>
+<!-- MENU -->
+<div class="menu">
+  <button onclick="showScreen('click')">🖱</button>
+  <button onclick="showScreen('cards')">🃏</button>
+  <button onclick="showScreen('stats')">⭐</button>
+</div>
+
+<script>
+// TELEGRAM
+const tg = window.Telegram.WebApp
+tg.expand()
+
+// PLAYER
+const player = {
+  coins: 0,
+  totalEarned: 0,
+  level: 1,
+  clickPower: 1,
+  clickLevel: 1
+}
+
+// CARDS
+const cards = [
+  { id: 1, name: "Ферма", basePrice: 50, income: 1, level: 0, maxLevel: 10 },
+  { id: 2, name: "Завод", basePrice: 500, income: 10, level: 0, maxLevel: 10, unlock: 1 },
+  { id: 3, name: "Корпорация", basePrice: 5000, income: 100, level: 0, maxLevel: 10, unlock: 2 }
+]
+
+// SAVE / LOAD
+function saveGame() {
+  localStorage.setItem("clickerSave", JSON.stringify({ player, cards }))
+}
+
+function loadGame() {
+  const save = localStorage.getItem("clickerSave")
+  if (!save) return
+  const data = JSON.parse(save)
+  Object.assign(player, data.player)
+  data.cards.forEach((c, i) => cards[i].level = c.level)
+}
+
+// LEVEL SYSTEM
+function updateLevel() {
+  let lvl = 1
+  let xp = player.totalEarned
+  let need = 100
+
+  while (xp >= need) {
+    xp -= need
+    lvl++
+    need = Math.floor(100 * Math.pow(lvl, 1.5))
+  }
+  player.level = lvl
+}
+
+// CLICK
+function clickCoin() {
+  player.coins += player.clickPower
+  player.totalEarned += player.clickPower
+  updateLevel()
+  saveGame()
+  render()
+}
+
+// CLICK UPGRADE
+function clickUpgradePrice() {
+  return Math.floor(50 * Math.pow(1.4, player.clickLevel))
+}
+
+function upgradeClick() {
+  const price = clickUpgradePrice()
+  if (player.coins >= price) {
+    player.coins -= price
+    player.clickLevel++
+    player.clickPower++
+    saveGame()
+    render()
+  }
+}
+
+// CARDS
+function cardPrice(card) {
+  return Math.floor(card.basePrice * Math.pow(1.5, card.level))
+}
+
+function isUnlocked(card) {
+  if (!card.unlock) return true
+  const prev = cards.find(c => c.id === card.unlock)
+  return prev.level >= prev.maxLevel
+}
+
+function buyCard(id) {
+  const card = cards.find(c => c.id === id)
+  if (card.level >= card.maxLevel) return
+  const price = cardPrice(card)
+  if (player.coins >= price) {
+    player.coins -= price
+    card.level++
+    saveGame()
+    render()
+  }
+}
+
+// INCOME
+setInterval(() => {
+  let income = 0
+  cards.forEach(c => income += c.level * c.income)
+  player.coins += income
+  player.totalEarned += income
+  updateLevel()
+  render()
+}, 1000)
+
+// UI
+function showScreen(name) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"))
+  document.getElementById("screen-" + name).classList.add("active")
+}
+
+function render() {
+  coins.innerText = player.coins
+  level.innerText = player.level
+  clickPower.innerText = player.clickPower
+  clickPrice.innerText = clickUpgradePrice()
+  totalEarned.innerText = player.totalEarned
+
+  cardsDiv = document.getElementById("cards")
+  cardsDiv.innerHTML = ""
+
+  cards.forEach(card => {
+    if (!isUnlocked(card)) return
+    cardsDiv.innerHTML += `
+      <div class="card">
+        <b>${card.name}</b><br>
+        Уровень: ${card.level}/${card.maxLevel}<br>
+        Доход: ${card.level * card.income}/сек<br>
+        ${
+          card.level < card.maxLevel
+            ? `Цена: ${cardPrice(card)} <button onclick="buyCard(${card.id})">Купить</button>`
+            : `<b>Макс. уровень</b>`
+        }
+      </div>
+    `
+  })
+}
+
+// START
+loadGame()
+render()
+</script>
+
 </body>
 </html>
