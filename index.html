@@ -57,7 +57,7 @@ button:active{
   box-shadow:0 0 10px #ffd54f;
 }
 
-/* CARDS LIST (NO GRID) */
+/* CARDS LIST (VERTICAL) */
 .cards{
   display:flex;
   flex-direction:column;
@@ -203,6 +203,7 @@ const cardData=[
 {id:10,name:"Ultimate NFT",basePrice:1000000,income:10000,level:0,maxLevel:10,rarity:"legendary",unlock:8}
 ]
 
+/* SAVE / LOAD */
 function saveGame(){
   player.lastOnline=Date.now()
   localStorage.setItem("starsSave",JSON.stringify({player,cardData}))
@@ -215,6 +216,7 @@ function loadGame(){
   d.cardData.forEach((c,i)=>cardData[i].level=c.level)
 }
 
+/* LEVEL & STAR */
 function updateLevel(){
   let xp=player.totalEarned,l=1,need=100
   while(xp>=need){
@@ -223,7 +225,6 @@ function updateLevel(){
   }
   player.level=l
 }
-
 function getStarByLevel(lvl){
   if(lvl>=60)return"🌠"
   if(lvl>=45)return"💫"
@@ -232,10 +233,12 @@ function getStarByLevel(lvl){
   return"⭐"
 }
 
+/* INCOME */
 function incomePerSecond(){
   return cardData.reduce((s,c)=>s+c.level*c.income,0)
 }
 
+/* OFFLINE INCOME */
 function applyOfflineIncome(){
   const diff=Math.floor((Date.now()-player.lastOnline)/1000)
   if(diff<10)return
@@ -250,18 +253,17 @@ function applyOfflineIncome(){
     offlineModal.classList.add("active")
   }
 }
-
 function closeOfflineModal(){
   offlineModal.classList.remove("active")
-  saveGame();render()
+  saveGame();renderStats()
 }
 
+/* CLICK */
 function clickCoin(){
   player.coins+=player.clickPower
   player.totalEarned+=player.clickPower
-  updateLevel();saveGame();render()
+  updateLevel();saveGame();renderStats()
 }
-
 function clickUpgradePrice(){
   return Math.floor(50*Math.pow(1.4,player.clickLevel))
 }
@@ -270,9 +272,10 @@ function upgradeClick(){
   if(player.coins<p)return
   player.coins-=p
   player.clickLevel++;player.clickPower++
-  saveGame();render()
+  saveGame();renderStats()
 }
 
+/* CARDS */
 function cardPrice(c){
   return Math.floor(c.basePrice*Math.pow(1.5,c.level))
 }
@@ -292,33 +295,37 @@ function buyCard(id){
   c.level++
   el.classList.add("buy")
   setTimeout(()=>el.classList.remove("buy"),300)
-  saveGame();render()
+  saveGame();renderStats();renderCards()
 }
 
+/* ONLINE INCOME (только stats) */
 setInterval(()=>{
   const inc=incomePerSecond()
   if(inc>0){
     player.coins+=inc
     player.totalEarned+=inc
-    updateLevel();render()
+    updateLevel()
+    renderStats()
   }
 },1000)
 
+/* UI */
 function showScreen(n){
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"))
   document.getElementById("screen-"+n).classList.add("active")
 }
 
-function render(){
+function renderStats(){
   coins.innerText=player.coins
   level.innerText=player.level
   clickPower.innerText=player.clickPower
   clickPrice.innerText=clickUpgradePrice()
   totalEarned.innerText=player.totalEarned
-
   clickBtn.innerText=getStarByLevel(player.level)
-  clickBtn.classList.toggle("star-glow",player.level>=30)
+  clickBtn.classList.toggle("star-glow", player.level>=30)
+}
 
+function renderCards(){
   cards.innerHTML=""
   cardData.forEach(c=>{
     if(!isUnlocked(c))return
@@ -335,9 +342,11 @@ function render(){
   })
 }
 
+/* START */
 loadGame()
 applyOfflineIncome()
-render()
+renderStats()
+renderCards()
 </script>
 
 </body>
