@@ -1,9 +1,13 @@
-// Telegram WebApp
+// ================= TELEGRAM =================
 const tg = window.Telegram.WebApp
 tg.ready()
 tg.expand()
 
-// ---------- PLAYER ----------
+const tgUser = tg.initDataUnsafe?.user
+const userId = tgUser ? tgUser.id : "guest"
+const STORAGE_KEY = "clicker_" + userId
+
+// ================= PLAYER =================
 const player = {
   coins: 0,
   totalEarned: 0,
@@ -11,17 +15,40 @@ const player = {
   clickPower: 1
 }
 
-// ---------- CARDS ----------
+// ================= CARDS =================
 const cards = [
   { id: 1, name: "Ферма", basePrice: 50, incomePerSecond: 1, level: 0 },
   { id: 2, name: "Завод", basePrice: 200, incomePerSecond: 5, level: 0, unlockLevel: 3 }
 ]
 
-// ---------- FUNCTIONS ----------
+// ================= SAVE / LOAD =================
+function saveGame() {
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({ player, cards })
+  )
+}
+
+function loadGame() {
+  const data = localStorage.getItem(STORAGE_KEY)
+  if (!data) return
+
+  const parsed = JSON.parse(data)
+
+  Object.assign(player, parsed.player)
+
+  parsed.cards.forEach(saved => {
+    const card = cards.find(c => c.id === saved.id)
+    if (card) card.level = saved.level
+  })
+}
+
+// ================= GAME LOGIC =================
 function clickCoin() {
   player.coins += player.clickPower
   player.totalEarned += player.clickPower
   updateLevel()
+  saveGame()
   render()
 }
 
@@ -40,21 +67,24 @@ function buyCard(id) {
   if (player.coins >= price) {
     player.coins -= price
     card.level++
+    saveGame()
     render()
   }
 }
 
-// ---------- PASSIVE INCOME ----------
+// ================= PASSIVE INCOME =================
 setInterval(() => {
   let income = 0
   cards.forEach(c => income += c.incomePerSecond * c.level)
+
   player.coins += income
   player.totalEarned += income
   updateLevel()
+  saveGame()
   render()
 }, 1000)
 
-// ---------- RENDER ----------
+// ================= RENDER =================
 function render() {
   document.getElementById("coins").innerText = player.coins
   document.getElementById("level").innerText = player.level
@@ -77,5 +107,8 @@ function render() {
   })
 }
 
-// ---------- INIT ----------
-window.onload = () => { render() }
+// ================= INIT =================
+window.onload = () => {
+  loadGame()
+  render()
+}
