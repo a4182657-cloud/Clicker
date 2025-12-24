@@ -3,173 +3,181 @@
 <head>
 <meta charset="UTF-8">
 <title>Telegram Stars Clicker</title>
-
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
-:root {
-  --bg: #0f0f14;
-  --card: #1b1b22;
-  --text: #ffffff;
-  --accent: #ffd54f;
+:root{
+  --bg:#0e0f14;
+  --card:#1b1d25;
+  --text:#fff;
+  --accent:#ffd54f;
+}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Arial,sans-serif;
+  padding-bottom:80px;
+}
+.app{padding:14px;}
+.top{
+  display:flex;
+  justify-content:space-between;
+  font-size:18px;
 }
 
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: Arial, sans-serif;
-  padding-bottom: 80px;
+/* SCREENS */
+.screen{display:none;}
+.screen.active{display:block;}
+
+/* CLICKER */
+.clicker{text-align:center;margin-top:25px;}
+.click-btn{
+  width:240px;height:240px;
+  border-radius:50%;
+  border:none;
+  font-size:64px;
+  background:radial-gradient(circle,#ffe082,#ffca28);
+  transition:transform .1s, box-shadow .2s;
+}
+.click-btn:active{transform:scale(.92);}
+.star-glow{
+  box-shadow:0 0 25px rgba(255,215,79,.8);
 }
 
-.app {
-  padding: 16px;
+/* BUTTONS */
+button{
+  background:var(--accent);
+  border:none;
+  border-radius:10px;
+  padding:8px 12px;
+  font-size:13px;
+  margin-top:6px;
+  transition:transform .1s,box-shadow .1s;
+}
+button:active{
+  transform:scale(.95);
+  box-shadow:0 0 10px #ffd54f;
 }
 
-.top {
-  display: flex;
-  justify-content: space-between;
-  font-size: 18px;
-  margin-bottom: 10px;
+/* CARDS GRID */
+.cards{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+  margin-top:10px;
+}
+.card{
+  background:var(--card);
+  padding:10px;
+  border-radius:12px;
+  text-align:center;
+  font-size:13px;
+  animation:fadeIn .3s;
+}
+.card.buy{animation:buyPulse .35s;}
+.card.shake{animation:shake .3s;}
+
+/* RARITY */
+.common{border:2px solid #9e9e9e;}
+.rare{border:2px solid #4fc3f7;box-shadow:0 0 8px #4fc3f7;}
+.epic{border:2px solid #ba68c8;box-shadow:0 0 10px #ba68c8;}
+.legendary{border:2px solid #ffd54f;box-shadow:0 0 14px #ffd54f;}
+
+/* MENU */
+.menu{
+  position:fixed;
+  bottom:0;left:0;right:0;
+  display:flex;
+  background:#111;
+  border-top:1px solid #333;
+}
+.menu button{
+  flex:1;
+  background:none;
+  color:white;
+  font-size:18px;
+  padding:14px 0;
 }
 
-/* Screens */
-.screen { display: none; }
-.screen.active { display: block; }
-
-/* Clicker */
-.clicker {
-  text-align: center;
-  margin-top: 30px;
+/* MODAL */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:10;
+}
+.modal.active{display:flex;}
+.modal-box{
+  background:var(--card);
+  padding:20px;
+  border-radius:14px;
+  width:85%;
+  max-width:320px;
+  text-align:center;
 }
 
-.click-btn {
-  width: 220px;
-  height: 220px;
-  border-radius: 50%;
-  border: none;
-  background: radial-gradient(circle, #ffe082, #ffca28);
-  font-size: 48px;
+/* ANIMATIONS */
+@keyframes buyPulse{
+  0%{transform:scale(1)}
+  50%{transform:scale(1.08)}
+  100%{transform:scale(1)}
 }
-
-button {
-  padding: 10px 14px;
-  margin-top: 10px;
-  background: var(--accent);
-  border: none;
-  color: #000;
-  border-radius: 8px;
-  font-size: 14px;
+@keyframes shake{
+  0%{transform:translateX(0)}
+  25%{transform:translateX(-5px)}
+  50%{transform:translateX(5px)}
+  75%{transform:translateX(-5px)}
+  100%{transform:translateX(0)}
 }
-
-/* Cards */
-.cards .card {
-  background: var(--card);
-  padding: 12px;
-  margin: 10px 0;
-  border-radius: 10px;
-}
-
-/* Menu */
-.menu {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  background: #111;
-  border-top: 1px solid #333;
-}
-
-.menu button {
-  flex: 1;
-  background: none;
-  color: white;
-  font-size: 18px;
-  padding: 14px 0;
-}
-
-/* OFFLINE MODAL */
-.modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-}
-
-.modal.active {
-  display: flex;
-}
-
-.modal-box {
-  background: var(--card);
-  padding: 20px;
-  border-radius: 14px;
-  width: 85%;
-  max-width: 320px;
-  text-align: center;
-}
-
-.modal-box h2 {
-  margin-top: 0;
-}
-
-.modal-box button {
-  width: 100%;
+@keyframes fadeIn{
+  from{opacity:0;transform:scale(.95)}
+  to{opacity:1;transform:scale(1)}
 }
 </style>
 </head>
 
 <body>
 
-<!-- OFFLINE INCOME MODAL -->
+<!-- OFFLINE MODAL -->
 <div id="offlineModal" class="modal">
   <div class="modal-box">
     <h2>⭐ Оффлайн доход</h2>
-    <p>Вы отсутствовали:</p>
-    <p><b><span id="offlineTime">0</span> сек</b></p>
-    <p>Получено:</p>
-    <p><b>⭐ <span id="offlineIncome">0</span></b></p>
+    <p>Время: <b><span id="offlineTime">0</span> сек</b></p>
+    <p>Получено: <b>⭐ <span id="offlineIncome">0</span></b></p>
     <button onclick="closeOfflineModal()">Забрать</button>
   </div>
 </div>
 
 <div class="app">
-
-  <!-- TOP BAR -->
   <div class="top">
     <div>⭐ <span id="coins">0</span></div>
-    <div>⭐ Уровень <span id="level">1</span></div>
+    <div>Ур. <span id="level">1</span></div>
   </div>
 
-  <!-- CLICK SCREEN -->
   <div id="screen-click" class="screen active">
     <div class="clicker">
-      <button class="click-btn" onclick="clickCoin()">⭐</button>
+      <button id="clickBtn" class="click-btn" onclick="clickCoin()">⭐</button>
       <p>Сила клика: <b><span id="clickPower">1</span></b></p>
-      <button onclick="upgradeClick()">🔼 Улучшить клик</button>
+      <button onclick="upgradeClick()">Улучшить клик</button>
       <p>Цена: ⭐ <span id="clickPrice">50</span></p>
     </div>
   </div>
 
-  <!-- CARDS SCREEN -->
   <div id="screen-cards" class="screen">
-    <h3>🎁 Подарки</h3>
+    <h3>🎁 NFT Подарки</h3>
     <div id="cards" class="cards"></div>
   </div>
 
-  <!-- STATS SCREEN -->
   <div id="screen-stats" class="screen">
     <h3>📊 Статистика</h3>
-    <p>Всего звёзд заработано: <span id="totalEarned">0</span></p>
+    <p>Всего заработано: ⭐ <span id="totalEarned">0</span></p>
   </div>
-
 </div>
 
-<!-- MENU -->
 <div class="menu">
   <button onclick="showScreen('click')">🖱</button>
   <button onclick="showScreen('cards')">🎁</button>
@@ -177,179 +185,163 @@ button {
 </div>
 
 <script>
-/* TELEGRAM */
-const tg = window.Telegram.WebApp
-tg.expand()
+Telegram.WebApp.expand()
 
-/* PLAYER */
-const player = {
-  coins: 0,
-  totalEarned: 0,
-  level: 1,
-  clickPower: 1,
-  clickLevel: 1,
-  lastOnline: Date.now()
+const player={
+  coins:0,totalEarned:0,level:1,
+  clickPower:1,clickLevel:1,
+  lastOnline:Date.now()
 }
 
-/* CARDS */
-const cards = [
-  { id: 1, name: "🎁 Basic Gift", basePrice: 50, income: 1, level: 0, maxLevel: 10 },
-  { id: 2, name: "🎁 Rare Gift", basePrice: 500, income: 10, level: 0, maxLevel: 10, unlock: 1 },
-  { id: 3, name: "🎁 Epic Gift", basePrice: 5000, income: 100, level: 0, maxLevel: 10, unlock: 2 }
+const cards=[
+{id:1,name:"Common Box",basePrice:50,income:1,level:0,maxLevel:10,rarity:"common"},
+{id:2,name:"Silver Gift",basePrice:200,income:3,level:0,maxLevel:10,rarity:"rare"},
+{id:3,name:"Golden Gift",basePrice:800,income:8,level:0,maxLevel:10,rarity:"rare"},
+{id:4,name:"Crystal Box",basePrice:2000,income:20,level:0,maxLevel:10,rarity:"epic",unlock:2},
+{id:5,name:"Neon Gift",basePrice:6000,income:60,level:0,maxLevel:10,rarity:"epic",unlock:3},
+{id:6,name:"Epic Drop",basePrice:15000,income:150,level:0,maxLevel:10,rarity:"epic",unlock:4},
+{id:7,name:"Mythic Core",basePrice:40000,income:400,level:0,maxLevel:10,rarity:"legendary",unlock:5},
+{id:8,name:"Legendary Star",basePrice:100000,income:1000,level:0,maxLevel:10,rarity:"legendary",unlock:6},
+{id:9,name:"Divine Relic",basePrice:250000,income:2500,level:0,maxLevel:10,rarity:"legendary",unlock:7},
+{id:10,name:"Ultimate NFT",basePrice:1000000,income:10000,level:0,maxLevel:10,rarity:"legendary",unlock:8},
 ]
 
 /* SAVE / LOAD */
-function saveGame() {
-  player.lastOnline = Date.now()
-  localStorage.setItem("starsClickerSave", JSON.stringify({ player, cards }))
+function saveGame(){
+  player.lastOnline=Date.now()
+  localStorage.setItem("starsSave",JSON.stringify({player,cards}))
+}
+function loadGame(){
+  const s=localStorage.getItem("starsSave")
+  if(!s)return
+  const d=JSON.parse(s)
+  Object.assign(player,d.player)
+  d.cards.forEach((c,i)=>cards[i].level=c.level)
 }
 
-function loadGame() {
-  const save = localStorage.getItem("starsClickerSave")
-  if (!save) return
-  const data = JSON.parse(save)
-  Object.assign(player, data.player)
-  data.cards.forEach((c, i) => cards[i].level = c.level)
-}
-
-/* LEVEL SYSTEM */
-function updateLevel() {
-  let lvl = 1
-  let xp = player.totalEarned
-  let need = 100
-
-  while (xp >= need) {
-    xp -= need
-    lvl++
-    need = Math.floor(100 * Math.pow(lvl, 1.5))
+/* LEVEL */
+function updateLevel(){
+  let xp=player.totalEarned,l=1,need=100
+  while(xp>=need){
+    xp-=need;l++
+    need=Math.floor(100*Math.pow(l,1.5))
   }
-  player.level = lvl
+  player.level=l
+}
+
+/* STAR BY LEVEL */
+function getStarByLevel(lvl){
+  if(lvl>=60) return "🌠"
+  if(lvl>=45) return "💫"
+  if(lvl>=30) return "✨"
+  if(lvl>=15) return "🌟"
+  return "⭐"
 }
 
 /* INCOME */
-function incomePerSecond() {
-  let income = 0
-  cards.forEach(c => income += c.level * c.income)
-  return income
+function incomePerSecond(){
+  return cards.reduce((s,c)=>s+c.level*c.income,0)
 }
 
-/* OFFLINE INCOME */
-function applyOfflineIncome() {
-  const now = Date.now()
-  const diff = Math.floor((now - player.lastOnline) / 1000)
-  if (diff < 10) return
-
-  const MAX_OFFLINE = 60 * 60 * 8
-  const seconds = Math.min(diff, MAX_OFFLINE)
-  const income = incomePerSecond() * seconds
-
-  if (income > 0) {
-    player.coins += income
-    player.totalEarned += income
+/* OFFLINE (x0.5) */
+function applyOfflineIncome(){
+  const diff=Math.floor((Date.now()-player.lastOnline)/1000)
+  if(diff<10)return
+  const sec=Math.min(diff,60*60*8)
+  const inc=Math.floor(incomePerSecond()*sec*0.5)
+  if(inc>0){
+    player.coins+=inc
+    player.totalEarned+=inc
     updateLevel()
-
-    document.getElementById("offlineTime").innerText = seconds
-    document.getElementById("offlineIncome").innerText = income
-    document.getElementById("offlineModal").classList.add("active")
+    offlineTime.innerText=sec
+    offlineIncome.innerText=inc
+    offlineModal.classList.add("active")
   }
 }
-
-function closeOfflineModal() {
-  document.getElementById("offlineModal").classList.remove("active")
-  saveGame()
-  render()
+function closeOfflineModal(){
+  offlineModal.classList.remove("active")
+  saveGame();render()
 }
 
 /* CLICK */
-function clickCoin() {
-  player.coins += player.clickPower
-  player.totalEarned += player.clickPower
-  updateLevel()
-  saveGame()
-  render()
+function clickCoin(){
+  player.coins+=player.clickPower
+  player.totalEarned+=player.clickPower
+  updateLevel();saveGame();render()
 }
-
-/* CLICK UPGRADE */
-function clickUpgradePrice() {
-  return Math.floor(50 * Math.pow(1.4, player.clickLevel))
+function clickUpgradePrice(){
+  return Math.floor(50*Math.pow(1.4,player.clickLevel))
 }
-
-function upgradeClick() {
-  const price = clickUpgradePrice()
-  if (player.coins >= price) {
-    player.coins -= price
-    player.clickLevel++
-    player.clickPower++
-    saveGame()
-    render()
-  }
+function upgradeClick(){
+  const p=clickUpgradePrice()
+  if(player.coins<p)return
+  player.coins-=p
+  player.clickLevel++;player.clickPower++
+  saveGame();render()
 }
 
 /* CARDS */
-function cardPrice(card) {
-  return Math.floor(card.basePrice * Math.pow(1.5, card.level))
+function cardPrice(c){
+  return Math.floor(c.basePrice*Math.pow(1.5,c.level))
 }
-
-function isUnlocked(card) {
-  if (!card.unlock) return true
-  const prev = cards.find(c => c.id === card.unlock)
-  return prev.level >= prev.maxLevel
+function isUnlocked(c){
+  if(!c.unlock)return true
+  return cards.find(x=>x.id===c.unlock).level>=10
 }
-
-function buyCard(id) {
-  const card = cards.find(c => c.id === id)
-  if (card.level >= card.maxLevel) return
-  const price = cardPrice(card)
-  if (player.coins >= price) {
-    player.coins -= price
-    card.level++
-    saveGame()
-    render()
+function buyCard(id){
+  const c=cards.find(x=>x.id===id)
+  const el=document.getElementById("card-"+id)
+  if(player.coins<cardPrice(c)){
+    el.classList.add("shake")
+    setTimeout(()=>el.classList.remove("shake"),300)
+    return
   }
+  player.coins-=cardPrice(c)
+  c.level++
+  el.classList.add("buy")
+  setTimeout(()=>el.classList.remove("buy"),300)
+  saveGame();render()
 }
 
-/* PASSIVE ONLINE INCOME */
-setInterval(() => {
-  const income = incomePerSecond()
-  if (income > 0) {
-    player.coins += income
-    player.totalEarned += income
-    updateLevel()
-    render()
+/* ONLINE INCOME */
+setInterval(()=>{
+  const inc=incomePerSecond()
+  if(inc>0){
+    player.coins+=inc
+    player.totalEarned+=inc
+    updateLevel();render()
   }
-}, 1000)
+},1000)
 
 /* UI */
-function showScreen(name) {
-  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"))
-  document.getElementById("screen-" + name).classList.add("active")
+function showScreen(n){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"))
+  document.getElementById("screen-"+n).classList.add("active")
 }
+function render(){
+  coins.innerText=player.coins
+  level.innerText=player.level
+  clickPower.innerText=player.clickPower
+  clickPrice.innerText=clickUpgradePrice()
+  totalEarned.innerText=player.totalEarned
 
-function render() {
-  coins.innerText = player.coins
-  level.innerText = player.level
-  clickPower.innerText = player.clickPower
-  clickPrice.innerText = clickUpgradePrice()
-  totalEarned.innerText = player.totalEarned
+  const star=getStarByLevel(player.level)
+  clickBtn.innerText=star
+  clickBtn.classList.toggle("star-glow",player.level>=30)
 
-  const cardsDiv = document.getElementById("cards")
-  cardsDiv.innerHTML = ""
-
-  cards.forEach(card => {
-    if (!isUnlocked(card)) return
-    cardsDiv.innerHTML += `
-      <div class="card">
-        <b>${card.name}</b><br>
-        Уровень: ${card.level}/${card.maxLevel}<br>
-        ⭐ ${card.level * card.income} / сек<br>
-        ${
-          card.level < card.maxLevel
-            ? `Цена: ⭐ ${cardPrice(card)}
-               <button onclick="buyCard(${card.id})">Купить</button>`
-            : `<b>Макс. уровень</b>`
-        }
-      </div>
-    `
+  cards.innerHTML=""
+  cards.forEach(c=>{
+    if(!isUnlocked(c))return
+    cards.innerHTML+=`
+      <div id="card-${c.id}" class="card ${c.rarity}">
+        <b>${c.name}</b><br>
+        Ур. ${c.level}/${c.maxLevel}<br>
+        ⭐ ${c.level*c.income}/сек<br>
+        ${c.level<c.maxLevel
+          ?`Цена: ⭐ ${cardPrice(c)}<br>
+            <button onclick="buyCard(${c.id})">Купить</button>`
+          :`<b>Макс</b>`}
+      </div>`
   })
 }
 
