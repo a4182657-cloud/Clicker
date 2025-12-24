@@ -2,16 +2,16 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Telegram Clicker</title>
+<title>Telegram Stars Clicker</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
 :root {
-  --bg: #0f0f0f;
-  --card: #1c1c1c;
+  --bg: #0f0f14;
+  --card: #1b1b22;
   --text: #ffffff;
-  --accent: #4caf50;
+  --accent: #ffd54f;
 }
 
 body {
@@ -19,11 +19,11 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: Arial, sans-serif;
-  padding-bottom: 70px;
+  padding-bottom: 80px;
 }
 
 .app {
-  padding: 15px;
+  padding: 16px;
 }
 
 .top {
@@ -33,46 +33,48 @@ body {
   margin-bottom: 10px;
 }
 
+/* Screens */
 .screen {
   display: none;
 }
-
 .screen.active {
   display: block;
 }
 
+/* Clicker */
 .clicker {
   text-align: center;
   margin-top: 30px;
 }
 
 .click-btn {
-  width: 140px;
-  height: 140px;
-  font-size: 40px;
+  width: 220px;
+  height: 220px;
   border-radius: 50%;
   border: none;
-  background: var(--accent);
-  color: white;
+  background: radial-gradient(circle, #ffe082, #ffca28);
+  font-size: 48px;
 }
 
 button {
-  padding: 10px;
+  padding: 10px 14px;
   margin-top: 10px;
   background: var(--accent);
   border: none;
-  color: white;
-  border-radius: 6px;
+  color: #000;
+  border-radius: 8px;
   font-size: 14px;
 }
 
+/* Cards */
 .cards .card {
   background: var(--card);
-  padding: 10px;
+  padding: 12px;
   margin: 10px 0;
-  border-radius: 8px;
+  border-radius: 10px;
 }
 
+/* Menu */
 .menu {
   position: fixed;
   bottom: 0;
@@ -88,6 +90,7 @@ button {
   background: none;
   color: white;
   font-size: 18px;
+  padding: 14px 0;
 }
 </style>
 </head>
@@ -96,48 +99,51 @@ button {
 
 <div class="app">
 
+  <!-- TOP BAR -->
   <div class="top">
-    <div>💰 <span id="coins">0</span></div>
-    <div>⭐ <span id="level">1</span></div>
+    <div>⭐ <span id="coins">0</span></div>
+    <div>⭐ Уровень <span id="level">1</span></div>
   </div>
 
   <!-- CLICK SCREEN -->
   <div id="screen-click" class="screen active">
     <div class="clicker">
-      <button class="click-btn" onclick="clickCoin()">🖱</button>
-      <p>Сила клика: <span id="clickPower">1</span></p>
+      <button class="click-btn" onclick="clickCoin()">⭐</button>
+
+      <p>Сила клика: <b><span id="clickPower">1</span></b></p>
+
       <button onclick="upgradeClick()">🔼 Улучшить клик</button>
-      <p>Цена: <span id="clickPrice">50</span></p>
+      <p>Цена: ⭐ <span id="clickPrice">50</span></p>
     </div>
   </div>
 
   <!-- CARDS SCREEN -->
   <div id="screen-cards" class="screen">
-    <h3>🃏 Карточки</h3>
+    <h3>🎁 Подарки</h3>
     <div id="cards" class="cards"></div>
   </div>
 
   <!-- STATS SCREEN -->
   <div id="screen-stats" class="screen">
     <h3>📊 Статистика</h3>
-    <p>Всего заработано: <span id="totalEarned">0</span></p>
+    <p>Всего звёзд заработано: <span id="totalEarned">0</span></p>
   </div>
 
 </div>
 
-<!-- MENU -->
+<!-- BOTTOM MENU -->
 <div class="menu">
   <button onclick="showScreen('click')">🖱</button>
-  <button onclick="showScreen('cards')">🃏</button>
+  <button onclick="showScreen('cards')">🎁</button>
   <button onclick="showScreen('stats')">⭐</button>
 </div>
 
 <script>
-// TELEGRAM
+/* TELEGRAM */
 const tg = window.Telegram.WebApp
 tg.expand()
 
-// PLAYER
+/* PLAYER */
 const player = {
   coins: 0,
   totalEarned: 0,
@@ -146,27 +152,27 @@ const player = {
   clickLevel: 1
 }
 
-// CARDS
+/* CARDS (позже просто добавишь img) */
 const cards = [
-  { id: 1, name: "Ферма", basePrice: 50, income: 1, level: 0, maxLevel: 10 },
-  { id: 2, name: "Завод", basePrice: 500, income: 10, level: 0, maxLevel: 10, unlock: 1 },
-  { id: 3, name: "Корпорация", basePrice: 5000, income: 100, level: 0, maxLevel: 10, unlock: 2 }
+  { id: 1, name: "🎁 Basic Gift", basePrice: 50, income: 1, level: 0, maxLevel: 10 },
+  { id: 2, name: "🎁 Rare Gift", basePrice: 500, income: 10, level: 0, maxLevel: 10, unlock: 1 },
+  { id: 3, name: "🎁 Epic Gift", basePrice: 5000, income: 100, level: 0, maxLevel: 10, unlock: 2 }
 ]
 
-// SAVE / LOAD
+/* SAVE / LOAD */
 function saveGame() {
-  localStorage.setItem("clickerSave", JSON.stringify({ player, cards }))
+  localStorage.setItem("starsClickerSave", JSON.stringify({ player, cards }))
 }
 
 function loadGame() {
-  const save = localStorage.getItem("clickerSave")
+  const save = localStorage.getItem("starsClickerSave")
   if (!save) return
   const data = JSON.parse(save)
   Object.assign(player, data.player)
   data.cards.forEach((c, i) => cards[i].level = c.level)
 }
 
-// LEVEL SYSTEM
+/* LEVEL SYSTEM */
 function updateLevel() {
   let lvl = 1
   let xp = player.totalEarned
@@ -180,7 +186,7 @@ function updateLevel() {
   player.level = lvl
 }
 
-// CLICK
+/* CLICK */
 function clickCoin() {
   player.coins += player.clickPower
   player.totalEarned += player.clickPower
@@ -189,7 +195,7 @@ function clickCoin() {
   render()
 }
 
-// CLICK UPGRADE
+/* CLICK UPGRADE */
 function clickUpgradePrice() {
   return Math.floor(50 * Math.pow(1.4, player.clickLevel))
 }
@@ -205,7 +211,7 @@ function upgradeClick() {
   }
 }
 
-// CARDS
+/* CARDS */
 function cardPrice(card) {
   return Math.floor(card.basePrice * Math.pow(1.5, card.level))
 }
@@ -228,7 +234,7 @@ function buyCard(id) {
   }
 }
 
-// INCOME
+/* PASSIVE INCOME */
 setInterval(() => {
   let income = 0
   cards.forEach(c => income += c.level * c.income)
@@ -238,7 +244,7 @@ setInterval(() => {
   render()
 }, 1000)
 
-// UI
+/* UI */
 function showScreen(name) {
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"))
   document.getElementById("screen-" + name).classList.add("active")
@@ -251,19 +257,21 @@ function render() {
   clickPrice.innerText = clickUpgradePrice()
   totalEarned.innerText = player.totalEarned
 
-  cardsDiv = document.getElementById("cards")
+  const cardsDiv = document.getElementById("cards")
   cardsDiv.innerHTML = ""
 
   cards.forEach(card => {
     if (!isUnlocked(card)) return
+
     cardsDiv.innerHTML += `
       <div class="card">
         <b>${card.name}</b><br>
         Уровень: ${card.level}/${card.maxLevel}<br>
-        Доход: ${card.level * card.income}/сек<br>
+        ⭐ ${card.level * card.income} / сек<br>
         ${
           card.level < card.maxLevel
-            ? `Цена: ${cardPrice(card)} <button onclick="buyCard(${card.id})">Купить</button>`
+            ? `Цена: ⭐ ${cardPrice(card)}
+               <button onclick="buyCard(${card.id})">Купить</button>`
             : `<b>Макс. уровень</b>`
         }
       </div>
@@ -271,7 +279,7 @@ function render() {
   })
 }
 
-// START
+/* START */
 loadGame()
 render()
 </script>
