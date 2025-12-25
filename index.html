@@ -25,24 +25,11 @@ body{
   padding-bottom:90px;
 }
 .app{padding:14px;}
-
-.top{
-  display:flex;
-  justify-content:space-between;
-}
-
-.box{
-  border:2px solid var(--accent);
-  border-radius:12px;
-  padding:6px 12px;
-  font-weight:600;
-}
-
+.top{display:flex;justify-content:space-between;}
+.box{border:2px solid var(--accent);border-radius:12px;padding:6px 12px;font-weight:600;}
 .screen{display:none;}
 .screen.active{display:block;}
-
 .clicker{text-align:center;margin-top:20px;}
-
 .click-btn{
   width:240px;height:240px;
   border-radius:50%;
@@ -52,70 +39,19 @@ body{
   transition:.15s;
 }
 .click-btn:active{transform:scale(.92);}
-.click-btn.disabled{
-  background:#444;
-  color:#999;
-}
-
-.upgrade-box{
-  margin-top:14px;
-  padding:12px;
-  background:#14161d;
-  border-radius:14px;
-}
-
-button{
-  background:var(--accent);
-  border:none;
-  border-radius:10px;
-  padding:10px 14px;
-  font-weight:600;
-}
-button:disabled{
-  background:#555;
-  color:#aaa;
-}
-
-.cards{
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-}
-.card{
-  background:var(--card);
-  padding:12px;
-  border-radius:12px;
-  text-align:center;
-}
+.click-btn.disabled{background:#444;color:#999;}
+.upgrade-box{margin-top:14px;padding:12px;background:#14161d;border-radius:14px;}
+button{background:var(--accent);border:none;border-radius:10px;padding:10px 14px;font-weight:600;}
+button:disabled{background:#555;color:#aaa;}
+.cards{display:flex;flex-direction:column;gap:12px;}
+.card{background:var(--card);padding:12px;border-radius:12px;text-align:center;}
 .common{border:2px solid #9e9e9e;}
 .rare{border:2px solid #4fc3f7;}
 .epic{border:2px solid #ba68c8;}
-.legendary{
-  border:2px solid #ffd54f;
-  box-shadow:0 0 12px #ffd54f;
-}
-
-.menu{
-  position:fixed;
-  bottom:0;left:0;right:0;
-  display:flex;
-  background:#111;
-}
-.menu button{
-  flex:1;
-  background:none;
-  color:white;
-  font-size:18px;
-  padding:14px 0;
-}
-
-input{
-  width:90%;
-  padding:10px;
-  border-radius:10px;
-  border:none;
-  margin-top:10px;
-}
+.legendary{border:2px solid #ffd54f;box-shadow:0 0 12px #ffd54f;}
+.menu{position:fixed;bottom:0;left:0;right:0;display:flex;background:#111;}
+.menu button{flex:1;background:none;color:white;font-size:18px;padding:14px 0;}
+input{width:90%;padding:10px;border-radius:10px;border:none;margin-top:10px;}
 </style>
 </head>
 
@@ -131,7 +67,6 @@ input{
   <div id="screen-click" class="screen active">
     <div class="clicker">
       <button id="clickBtn" class="click-btn" onclick="clickCoin()">⭐</button>
-
       <p>⚡ Энергия: <b><span id="energy"></span> / <span id="maxEnergy"></span></b></p>
       <p>Сила клика: <b><span id="clickPower"></span></b></p>
 
@@ -181,17 +116,14 @@ input{
 <script>
 Telegram.WebApp.expand()
 
+// Игрок
 const player={
-  coins:0,
-  totalEarned:0,
-  level:1,
-  clickPower:1,
-  clickLevel:1,
-  energy:500,
-  maxEnergy:500,
-  energyLevel:1
+  coins:0,totalEarned:0,level:1,
+  clickPower:1,clickLevel:1,
+  energy:500,maxEnergy:500,energyLevel:1
 }
 
+// Карточки
 const cardData=[
 {id:1,name:"Common Gift",basePrice:1000,income:5,level:0,maxLevel:10,rarity:"common"},
 {id:2,name:"Rare Gift",basePrice:6000,income:20,level:0,maxLevel:10,rarity:"rare"},
@@ -199,31 +131,59 @@ const cardData=[
 {id:4,name:"Legendary Gift",basePrice:150000,income:300,level:0,maxLevel:10,rarity:"legendary"}
 ]
 
+// Промокоды
 const promoCodes={
 "STARS100K":true,"NFTGIFT":true,"BONUSSTAR":true,"CLICKER":true,"ULTRASTAR":true
 }
 
+// ==== LOCAL STORAGE ====
+function saveGame(){
+  localStorage.setItem("clickerSave", JSON.stringify({
+    player,
+    cardData,
+    promoCodes
+  }))
+}
+
+function loadGame(){
+  const save=localStorage.getItem("clickerSave")
+  if(!save) return
+  const data=JSON.parse(save)
+  Object.assign(player,data.player)
+  data.cardData.forEach(s=>{
+    const c=cardData.find(x=>x.id===s.id)
+    if(c) c.level=s.level
+  })
+  Object.assign(promoCodes,data.promoCodes)
+}
+
+// ==== Основная логика ====
 function incomePerSecond(){
   return cardData.reduce((s,c)=>s+c.level*c.income,0)
 }
 
 function updateLevel(){
   let xp=player.totalEarned,l=1,need=100
-  while(xp>=need){
-    xp-=need
-    l++
-    need=Math.floor(100*Math.pow(l,1.5))
-  }
+  while(xp>=need){xp-=need;l++;need=Math.floor(100*Math.pow(l,1.5))}
   player.level=l
 }
 
+function getStarByLevel(l){
+  if(l>=60)return"🌠"
+  if(l>=45)return"💫"
+  if(l>=30)return"✨"
+  if(l>=15)return"🌟"
+  return"⭐"
+}
+
 function clickCoin(){
-  if(player.energy<=0)return
+  if(player.energy<=0) return
   player.energy--
   player.coins+=player.clickPower
   player.totalEarned+=player.clickPower
   updateLevel()
   renderStats()
+  saveGame()
 }
 
 function upgradeClick(){
@@ -233,12 +193,10 @@ function upgradeClick(){
   player.clickLevel++
   player.clickPower++
   renderStats()
+  saveGame()
 }
 
-function energyUpgradePrice(){
-  return Math.floor(200*Math.pow(1.6,player.energyLevel))
-}
-
+function energyUpgradePrice(){return Math.floor(200*Math.pow(1.6,player.energyLevel))}
 function upgradeEnergy(){
   const price=energyUpgradePrice()
   if(player.coins<price)return
@@ -247,17 +205,19 @@ function upgradeEnergy(){
   player.maxEnergy+=200
   player.energy=player.maxEnergy
   renderStats()
+  saveGame()
 }
 
 function buyCard(id){
   const c=cardData.find(x=>x.id===id)
-  if(c.level>=c.maxLevel)return
+  if(c.level>=c.maxLevel) return
   const price=Math.floor(c.basePrice*Math.pow(1.5,c.level))
-  if(player.coins<price)return
+  if(player.coins<price) return
   player.coins-=price
   c.level++
   renderStats()
   renderCards()
+  saveGame()
 }
 
 function redeemPromo(){
@@ -268,29 +228,26 @@ function redeemPromo(){
     player.totalEarned+=100000
     promoMessage.innerText="✅ +100 000 ⭐"
     renderStats()
-  }else promoMessage.innerText="❌ Код недействителен"
+    saveGame()
+  } else promoMessage.innerText="❌ Код недействителен"
   promoInput.value=""
 }
 
+// ==== Интервалы ====
 setInterval(()=>{
-  if(player.energy<player.maxEnergy){
-    player.energy++
-    renderStats()
-  }
+  if(player.energy<player.maxEnergy){player.energy++; renderStats()}
   const inc=incomePerSecond()
-  if(inc>0){
-    player.coins+=inc
-    player.totalEarned+=inc
-    updateLevel()
-    renderStats()
-  }
+  if(inc>0){player.coins+=inc; player.totalEarned+=inc; updateLevel(); renderStats()}
 },1000)
+
+setInterval(saveGame,5000) // автосохранение каждые 5 сек
 
 function showScreen(n){
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"))
   document.getElementById("screen-"+n).classList.add("active")
 }
 
+// ==== Рендер ====
 function renderStats(){
   coins.innerText=player.coins
   level.innerText=player.level
@@ -299,7 +256,6 @@ function renderStats(){
   energy.innerText=player.energy
   maxEnergy.innerText=player.maxEnergy
   energyPrice.innerText=energyUpgradePrice()
-
   profileLevel.innerText=player.level
   incomePerSec.innerText=incomePerSecond()
   totalEarned.innerText=player.totalEarned
@@ -325,6 +281,8 @@ function renderCards(){
   })
 }
 
+// ==== Загрузка при старте ====
+loadGame()
 renderStats()
 renderCards()
 </script>
