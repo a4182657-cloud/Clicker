@@ -3,31 +3,47 @@
 <head>
 <meta charset="UTF-8">
 <title>Telegram Stars Clicker</title>
+
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<!-- Modern font -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
 :root{
   --bg:#0e0f14;
   --card:#1b1d25;
-  --text:#fff;
+  --text:#ffffff;
   --accent:#ffd54f;
 }
 body{
   margin:0;
   background:var(--bg);
   color:var(--text);
-  font-family:Arial,sans-serif;
+  font-family:'Inter', system-ui, -apple-system, sans-serif;
   padding-bottom:90px;
 }
 .app{padding:14px;}
-.top{display:flex;justify-content:space-between;font-size:18px;}
+.top{
+  display:flex;
+  justify-content:space-between;
+  font-size:18px;
+  font-weight:600;
+}
 
 .screen{display:none;}
 .screen.active{display:block;}
 
-.clicker{text-align:center;margin-top:25px;}
+.clicker{
+  text-align:center;
+  margin-top:20px;
+}
+
 .click-btn{
-  width:240px;height:240px;
+  width:240px;
+  height:240px;
   border-radius:50%;
   border:none;
   font-size:64px;
@@ -37,13 +53,26 @@ body{
 .click-btn:active{transform:scale(.92);}
 .star-glow{box-shadow:0 0 25px rgba(255,215,79,.8);}
 
+.click-info{
+  margin-top:12px;
+  font-size:15px;
+}
+
+.upgrade-box{
+  margin-top:20px;
+  padding:14px;
+  background:#14161d;
+  border-radius:14px;
+}
+
 button{
   background:var(--accent);
   border:none;
   border-radius:10px;
-  padding:8px 12px;
-  font-size:13px;
-  margin-top:6px;
+  padding:10px 14px;
+  font-size:14px;
+  font-weight:600;
+  margin-top:8px;
 }
 button:active{transform:scale(.95);}
 
@@ -64,11 +93,16 @@ button:active{transform:scale(.95);}
 .common{border:2px solid #9e9e9e;}
 .rare{border:2px solid #4fc3f7;}
 .epic{border:2px solid #ba68c8;}
-.legendary{border:2px solid #ffd54f;box-shadow:0 0 12px #ffd54f;}
+.legendary{
+  border:2px solid #ffd54f;
+  box-shadow:0 0 12px #ffd54f;
+}
 
 .menu{
   position:fixed;
-  bottom:0;left:0;right:0;
+  bottom:0;
+  left:0;
+  right:0;
   display:flex;
   background:#111;
 }
@@ -89,8 +123,18 @@ input{
   font-size:16px;
 }
 
-@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.1)}100%{transform:scale(1)}}
-@keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-5px)}50%{transform:translateX(5px)}75%{transform:translateX(-5px)}100%{transform:translateX(0)}}
+@keyframes pulse{
+  0%{transform:scale(1)}
+  50%{transform:scale(1.1)}
+  100%{transform:scale(1)}
+}
+@keyframes shake{
+  0%{transform:translateX(0)}
+  25%{transform:translateX(-5px)}
+  50%{transform:translateX(5px)}
+  75%{transform:translateX(-5px)}
+  100%{transform:translateX(0)}
+}
 </style>
 </head>
 
@@ -102,20 +146,30 @@ input{
     <div>Ур. <span id="level">1</span></div>
   </div>
 
+  <!-- CLICK -->
   <div id="screen-click" class="screen active">
     <div class="clicker">
       <button id="clickBtn" class="click-btn" onclick="clickCoin()">⭐</button>
-      <p>Сила клика: <b><span id="clickPower">1</span></b></p>
-      <button onclick="upgradeClick()">Улучшить клик</button>
-      <p>Цена: ⭐ <span id="clickPrice">50</span></p>
+
+      <div class="click-info">
+        <div>Сила клика: <b><span id="clickPower">1</span></b></div>
+      </div>
+
+      <div class="upgrade-box">
+        <div>Улучшение клика</div>
+        <div>Цена: ⭐ <span id="clickPrice">50</span></div>
+        <button onclick="upgradeClick()">Улучшить клик</button>
+      </div>
     </div>
   </div>
 
+  <!-- CARDS -->
   <div id="screen-cards" class="screen">
     <h3>🎁 NFT Подарки</h3>
     <div id="cards" class="cards"></div>
   </div>
 
+  <!-- PROMO -->
   <div id="screen-promo" class="screen">
     <h3>🎟 Промокоды</h3>
     <input id="promoInput" placeholder="Введите промокод">
@@ -133,9 +187,7 @@ input{
 <script>
 Telegram.WebApp.expand()
 
-const player={coins:0,totalEarned:0,level:1,clickPower:1,clickLevel:1,lastOnline:Date.now()}
-
-/* 🔥 ЦЕНЫ УВЕЛИЧЕНЫ */
+const player={coins:0,totalEarned:0,level:1,clickPower:1,clickLevel:1}
 const cardData=[
 {id:1,name:"Common Box",basePrice:250,income:1,level:0,maxLevel:10,rarity:"common"},
 {id:2,name:"Silver Gift",basePrice:1200,income:3,level:0,maxLevel:10,rarity:"rare"},
@@ -149,31 +201,9 @@ const cardData=[
 {id:10,name:"Ultimate NFT",basePrice:5000000,income:10000,level:0,maxLevel:10,rarity:"legendary",unlock:8}
 ]
 
-/* 🎟 10 ПРОМОКОДОВ */
 const promoCodes={
-"STARS100K":true,
-"NFTGIFT":true,
-"TELEGRAM":true,
-"BONUSSTAR":true,
-"CLICKER":true,
-"DROP2025":true,
-"NFTPOWER":true,
-"STARHYPE":true,
-"GIFTBOX":true,
-"ULTRASTAR":true
-}
-
-function saveGame(){
-  player.lastOnline=Date.now()
-  localStorage.setItem("starsSave",JSON.stringify({player,cardData,promoCodes}))
-}
-function loadGame(){
-  const s=localStorage.getItem("starsSave")
-  if(!s)return
-  const d=JSON.parse(s)
-  Object.assign(player,d.player)
-  d.cardData.forEach((c,i)=>cardData[i].level=c.level)
-  if(d.promoCodes)Object.assign(promoCodes,d.promoCodes)
+"STARS100K":true,"NFTGIFT":true,"TELEGRAM":true,"BONUSSTAR":true,"CLICKER":true,
+"DROP2025":true,"NFTPOWER":true,"STARHYPE":true,"GIFTBOX":true,"ULTRASTAR":true
 }
 
 function updateLevel(){
@@ -192,38 +222,18 @@ function getStarByLevel(l){
 function clickCoin(){
   player.coins+=player.clickPower
   player.totalEarned+=player.clickPower
-  updateLevel();saveGame();renderStats()
+  updateLevel()
+  renderStats()
 }
+
 function upgradeClick(){
-  const p=Math.floor(50*Math.pow(1.4,player.clickLevel))
-  if(player.coins<p)return
-  player.coins-=p
-  player.clickLevel++;player.clickPower++
-  saveGame();renderStats()
+  const price=Math.floor(50*Math.pow(1.4,player.clickLevel))
+  if(player.coins<price)return
+  player.coins-=price
+  player.clickLevel++
+  player.clickPower++
+  renderStats()
 }
-
-function cardPrice(c){return Math.floor(c.basePrice*Math.pow(1.5,c.level))}
-function isUnlocked(c){return !c.unlock||cardData.find(x=>x.id===c.unlock).level>=10}
-
-function buyCard(id){
-  const c=cardData.find(x=>x.id===id)
-  const el=document.getElementById("card-"+id)
-  if(player.coins<cardPrice(c)){el.classList.add("shake");setTimeout(()=>el.classList.remove("shake"),300);return}
-  player.coins-=cardPrice(c);c.level++
-  el.classList.add("buy");setTimeout(()=>el.classList.remove("buy"),300)
-  saveGame();renderStats();renderCards()
-}
-
-function incomePerSecond(){return cardData.reduce((s,c)=>s+c.level*c.income,0)}
-setInterval(()=>{
-  const inc=incomePerSecond()
-  if(inc>0){
-    player.coins+=inc
-    player.totalEarned+=inc
-    updateLevel()
-    renderStats()
-  }
-},1000)
 
 function redeemPromo(){
   const code=promoInput.value.trim().toUpperCase()
@@ -232,7 +242,7 @@ function redeemPromo(){
     player.coins+=100000
     player.totalEarned+=100000
     promoMessage.innerText="✅ +100 000 ⭐"
-    saveGame();renderStats()
+    renderStats()
   }else promoMessage.innerText="❌ Код недействителен"
   promoInput.value=""
 }
@@ -250,23 +260,21 @@ function renderStats(){
   clickBtn.innerText=getStarByLevel(player.level)
   clickBtn.classList.toggle("star-glow",player.level>=30)
 }
+
 function renderCards(){
   cards.innerHTML=""
   cardData.forEach(c=>{
-    if(!isUnlocked(c))return
+    if(c.unlock && cardData.find(x=>x.id===c.unlock).level<10)return
     cards.innerHTML+=`
-    <div id="card-${c.id}" class="card ${c.rarity}">
-      <b>${c.name}</b><br>
-      Ур. ${c.level}/${c.maxLevel}<br>
-      ⭐ ${c.level*c.income}/сек<br>
-      ${c.level<c.maxLevel
-        ?`Цена: ⭐ ${cardPrice(c)}<br><button onclick="buyCard(${c.id})">Купить</button>`
-        :"<b>Макс</b>"}
-    </div>`
+      <div class="card ${c.rarity}">
+        <b>${c.name}</b><br>
+        Ур. ${c.level}/${c.maxLevel}<br>
+        ⭐ ${c.level*c.income}/сек<br>
+        <button onclick="buyCard(${c.id})">Купить (${Math.floor(c.basePrice*Math.pow(1.5,c.level))})</button>
+      </div>`
   })
 }
 
-loadGame()
 renderStats()
 renderCards()
 </script>
