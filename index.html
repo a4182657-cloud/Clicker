@@ -17,20 +17,14 @@ body{
   background:var(--bg);
   color:var(--text);
   font-family:Arial,sans-serif;
-  padding-bottom:80px;
+  padding-bottom:90px;
 }
 .app{padding:14px;}
-.top{
-  display:flex;
-  justify-content:space-between;
-  font-size:18px;
-}
+.top{display:flex;justify-content:space-between;font-size:18px;}
 
-/* SCREENS */
 .screen{display:none;}
 .screen.active{display:block;}
 
-/* CLICKER */
 .clicker{text-align:center;margin-top:25px;}
 .click-btn{
   width:240px;height:240px;
@@ -38,7 +32,7 @@ body{
   border:none;
   font-size:64px;
   background:radial-gradient(circle,#ffe082,#ffca28);
-  transition:transform .1s, box-shadow .2s;
+  transition:.1s;
 }
 .click-btn:active{transform:scale(.92);}
 .star-glow{box-shadow:0 0 25px rgba(255,215,79,.8);}
@@ -50,44 +44,33 @@ button{
   padding:8px 12px;
   font-size:13px;
   margin-top:6px;
-  transition:transform .1s,box-shadow .1s;
 }
-button:active{
-  transform:scale(.95);
-  box-shadow:0 0 10px #ffd54f;
-}
+button:active{transform:scale(.95);}
 
-/* CARDS LIST (VERTICAL) */
 .cards{
   display:flex;
   flex-direction:column;
   gap:10px;
-  margin-top:10px;
 }
 .card{
   background:var(--card);
   padding:12px;
   border-radius:12px;
   text-align:center;
-  font-size:13px;
-  animation:fadeIn .3s;
 }
-.card.buy{animation:buyPulse .35s;}
+.card.buy{animation:pulse .3s;}
 .card.shake{animation:shake .3s;}
 
-/* RARITY */
 .common{border:2px solid #9e9e9e;}
-.rare{border:2px solid #4fc3f7;box-shadow:0 0 8px #4fc3f7;}
-.epic{border:2px solid #ba68c8;box-shadow:0 0 10px #ba68c8;}
-.legendary{border:2px solid #ffd54f;box-shadow:0 0 14px #ffd54f;}
+.rare{border:2px solid #4fc3f7;}
+.epic{border:2px solid #ba68c8;}
+.legendary{border:2px solid #ffd54f;box-shadow:0 0 12px #ffd54f;}
 
-/* MENU */
 .menu{
   position:fixed;
   bottom:0;left:0;right:0;
   display:flex;
   background:#111;
-  border-top:1px solid #333;
 }
 .menu button{
   flex:1;
@@ -97,57 +80,21 @@ button:active{
   padding:14px 0;
 }
 
-/* MODAL */
-.modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.6);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:10;
-}
-.modal.active{display:flex;}
-.modal-box{
-  background:var(--card);
-  padding:20px;
-  border-radius:14px;
-  width:85%;
-  max-width:320px;
-  text-align:center;
+input{
+  width:90%;
+  padding:10px;
+  border-radius:10px;
+  border:none;
+  margin-top:10px;
+  font-size:16px;
 }
 
-/* ANIMATIONS */
-@keyframes buyPulse{
-  0%{transform:scale(1)}
-  50%{transform:scale(1.08)}
-  100%{transform:scale(1)}
-}
-@keyframes shake{
-  0%{transform:translateX(0)}
-  25%{transform:translateX(-5px)}
-  50%{transform:translateX(5px)}
-  75%{transform:translateX(-5px)}
-  100%{transform:translateX(0)}
-}
-@keyframes fadeIn{
-  from{opacity:0;transform:scale(.95)}
-  to{opacity:1;transform:scale(1)}
-}
+@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.1)}100%{transform:scale(1)}}
+@keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-5px)}50%{transform:translateX(5px)}75%{transform:translateX(-5px)}100%{transform:translateX(0)}}
 </style>
 </head>
 
 <body>
-
-<!-- OFFLINE MODAL -->
-<div id="offlineModal" class="modal">
-  <div class="modal-box">
-    <h2>⭐ Оффлайн доход</h2>
-    <p>Время: <b><span id="offlineTime">0</span> сек</b></p>
-    <p>Получено: <b>⭐ <span id="offlineIncome">0</span></b></p>
-    <button onclick="closeOfflineModal()">Забрать</button>
-  </div>
-</div>
 
 <div class="app">
   <div class="top">
@@ -169,44 +116,56 @@ button:active{
     <div id="cards" class="cards"></div>
   </div>
 
-  <div id="screen-stats" class="screen">
-    <h3>📊 Статистика</h3>
-    <p>Всего заработано: ⭐ <span id="totalEarned">0</span></p>
+  <div id="screen-promo" class="screen">
+    <h3>🎟 Промокоды</h3>
+    <input id="promoInput" placeholder="Введите промокод">
+    <button onclick="redeemPromo()">Активировать</button>
+    <p id="promoMessage"></p>
   </div>
 </div>
 
 <div class="menu">
   <button onclick="showScreen('click')">🖱</button>
   <button onclick="showScreen('cards')">🎁</button>
-  <button onclick="showScreen('stats')">⭐</button>
+  <button onclick="showScreen('promo')">🎟</button>
 </div>
 
 <script>
 Telegram.WebApp.expand()
 
-const player={
-  coins:0,totalEarned:0,level:1,
-  clickPower:1,clickLevel:1,
-  lastOnline:Date.now()
-}
+const player={coins:0,totalEarned:0,level:1,clickPower:1,clickLevel:1,lastOnline:Date.now()}
 
+/* 🔥 ЦЕНЫ УВЕЛИЧЕНЫ */
 const cardData=[
-{id:1,name:"Common Box",basePrice:50,income:1,level:0,maxLevel:10,rarity:"common"},
-{id:2,name:"Silver Gift",basePrice:200,income:3,level:0,maxLevel:10,rarity:"rare"},
-{id:3,name:"Golden Gift",basePrice:800,income:8,level:0,maxLevel:10,rarity:"rare"},
-{id:4,name:"Crystal Box",basePrice:2000,income:20,level:0,maxLevel:10,rarity:"epic",unlock:2},
-{id:5,name:"Neon Gift",basePrice:6000,income:60,level:0,maxLevel:10,rarity:"epic",unlock:3},
-{id:6,name:"Epic Drop",basePrice:15000,income:150,level:0,maxLevel:10,rarity:"epic",unlock:4},
-{id:7,name:"Mythic Core",basePrice:40000,income:400,level:0,maxLevel:10,rarity:"legendary",unlock:5},
-{id:8,name:"Legendary Star",basePrice:100000,income:1000,level:0,maxLevel:10,rarity:"legendary",unlock:6},
-{id:9,name:"Divine Relic",basePrice:250000,income:2500,level:0,maxLevel:10,rarity:"legendary",unlock:7},
-{id:10,name:"Ultimate NFT",basePrice:1000000,income:10000,level:0,maxLevel:10,rarity:"legendary",unlock:8}
+{id:1,name:"Common Box",basePrice:250,income:1,level:0,maxLevel:10,rarity:"common"},
+{id:2,name:"Silver Gift",basePrice:1200,income:3,level:0,maxLevel:10,rarity:"rare"},
+{id:3,name:"Golden Gift",basePrice:4500,income:8,level:0,maxLevel:10,rarity:"rare"},
+{id:4,name:"Crystal Box",basePrice:12000,income:20,level:0,maxLevel:10,rarity:"epic",unlock:2},
+{id:5,name:"Neon Gift",basePrice:30000,income:60,level:0,maxLevel:10,rarity:"epic",unlock:3},
+{id:6,name:"Epic Drop",basePrice:80000,income:150,level:0,maxLevel:10,rarity:"epic",unlock:4},
+{id:7,name:"Mythic Core",basePrice:200000,income:400,level:0,maxLevel:10,rarity:"legendary",unlock:5},
+{id:8,name:"Legendary Star",basePrice:500000,income:1000,level:0,maxLevel:10,rarity:"legendary",unlock:6},
+{id:9,name:"Divine Relic",basePrice:1200000,income:2500,level:0,maxLevel:10,rarity:"legendary",unlock:7},
+{id:10,name:"Ultimate NFT",basePrice:5000000,income:10000,level:0,maxLevel:10,rarity:"legendary",unlock:8}
 ]
 
-/* SAVE / LOAD */
+/* 🎟 10 ПРОМОКОДОВ */
+const promoCodes={
+"STARS100K":true,
+"NFTGIFT":true,
+"TELEGRAM":true,
+"BONUSSTAR":true,
+"CLICKER":true,
+"DROP2025":true,
+"NFTPOWER":true,
+"STARHYPE":true,
+"GIFTBOX":true,
+"ULTRASTAR":true
+}
+
 function saveGame(){
   player.lastOnline=Date.now()
-  localStorage.setItem("starsSave",JSON.stringify({player,cardData}))
+  localStorage.setItem("starsSave",JSON.stringify({player,cardData,promoCodes}))
 }
 function loadGame(){
   const s=localStorage.getItem("starsSave")
@@ -214,91 +173,48 @@ function loadGame(){
   const d=JSON.parse(s)
   Object.assign(player,d.player)
   d.cardData.forEach((c,i)=>cardData[i].level=c.level)
+  if(d.promoCodes)Object.assign(promoCodes,d.promoCodes)
 }
 
-/* LEVEL & STAR */
 function updateLevel(){
   let xp=player.totalEarned,l=1,need=100
-  while(xp>=need){
-    xp-=need;l++
-    need=Math.floor(100*Math.pow(l,1.5))
-  }
+  while(xp>=need){xp-=need;l++;need=Math.floor(100*Math.pow(l,1.5))}
   player.level=l
 }
-function getStarByLevel(lvl){
-  if(lvl>=60)return"🌠"
-  if(lvl>=45)return"💫"
-  if(lvl>=30)return"✨"
-  if(lvl>=15)return"🌟"
+function getStarByLevel(l){
+  if(l>=60)return"🌠"
+  if(l>=45)return"💫"
+  if(l>=30)return"✨"
+  if(l>=15)return"🌟"
   return"⭐"
 }
 
-/* INCOME */
-function incomePerSecond(){
-  return cardData.reduce((s,c)=>s+c.level*c.income,0)
-}
-
-/* OFFLINE INCOME */
-function applyOfflineIncome(){
-  const diff=Math.floor((Date.now()-player.lastOnline)/1000)
-  if(diff<10)return
-  const sec=Math.min(diff,60*60*8)
-  const inc=Math.floor(incomePerSecond()*sec*0.5)
-  if(inc>0){
-    player.coins+=inc
-    player.totalEarned+=inc
-    updateLevel()
-    offlineTime.innerText=sec
-    offlineIncome.innerText=inc
-    offlineModal.classList.add("active")
-  }
-}
-function closeOfflineModal(){
-  offlineModal.classList.remove("active")
-  saveGame();renderStats()
-}
-
-/* CLICK */
 function clickCoin(){
   player.coins+=player.clickPower
   player.totalEarned+=player.clickPower
   updateLevel();saveGame();renderStats()
 }
-function clickUpgradePrice(){
-  return Math.floor(50*Math.pow(1.4,player.clickLevel))
-}
 function upgradeClick(){
-  const p=clickUpgradePrice()
+  const p=Math.floor(50*Math.pow(1.4,player.clickLevel))
   if(player.coins<p)return
   player.coins-=p
   player.clickLevel++;player.clickPower++
   saveGame();renderStats()
 }
 
-/* CARDS */
-function cardPrice(c){
-  return Math.floor(c.basePrice*Math.pow(1.5,c.level))
-}
-function isUnlocked(c){
-  if(!c.unlock)return true
-  return cardData.find(x=>x.id===c.unlock).level>=10
-}
+function cardPrice(c){return Math.floor(c.basePrice*Math.pow(1.5,c.level))}
+function isUnlocked(c){return !c.unlock||cardData.find(x=>x.id===c.unlock).level>=10}
+
 function buyCard(id){
   const c=cardData.find(x=>x.id===id)
   const el=document.getElementById("card-"+id)
-  if(player.coins<cardPrice(c)){
-    el.classList.add("shake")
-    setTimeout(()=>el.classList.remove("shake"),300)
-    return
-  }
-  player.coins-=cardPrice(c)
-  c.level++
-  el.classList.add("buy")
-  setTimeout(()=>el.classList.remove("buy"),300)
+  if(player.coins<cardPrice(c)){el.classList.add("shake");setTimeout(()=>el.classList.remove("shake"),300);return}
+  player.coins-=cardPrice(c);c.level++
+  el.classList.add("buy");setTimeout(()=>el.classList.remove("buy"),300)
   saveGame();renderStats();renderCards()
 }
 
-/* ONLINE INCOME (только stats) */
+function incomePerSecond(){return cardData.reduce((s,c)=>s+c.level*c.income,0)}
 setInterval(()=>{
   const inc=incomePerSecond()
   if(inc>0){
@@ -309,7 +225,18 @@ setInterval(()=>{
   }
 },1000)
 
-/* UI */
+function redeemPromo(){
+  const code=promoInput.value.trim().toUpperCase()
+  if(promoCodes[code]){
+    promoCodes[code]=false
+    player.coins+=100000
+    player.totalEarned+=100000
+    promoMessage.innerText="✅ +100 000 ⭐"
+    saveGame();renderStats()
+  }else promoMessage.innerText="❌ Код недействителен"
+  promoInput.value=""
+}
+
 function showScreen(n){
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"))
   document.getElementById("screen-"+n).classList.add("active")
@@ -319,32 +246,27 @@ function renderStats(){
   coins.innerText=player.coins
   level.innerText=player.level
   clickPower.innerText=player.clickPower
-  clickPrice.innerText=clickUpgradePrice()
-  totalEarned.innerText=player.totalEarned
+  clickPrice.innerText=Math.floor(50*Math.pow(1.4,player.clickLevel))
   clickBtn.innerText=getStarByLevel(player.level)
-  clickBtn.classList.toggle("star-glow", player.level>=30)
+  clickBtn.classList.toggle("star-glow",player.level>=30)
 }
-
 function renderCards(){
   cards.innerHTML=""
   cardData.forEach(c=>{
     if(!isUnlocked(c))return
     cards.innerHTML+=`
-      <div id="card-${c.id}" class="card ${c.rarity}">
-        <b>${c.name}</b><br>
-        Ур. ${c.level}/${c.maxLevel}<br>
-        ⭐ ${c.level*c.income}/сек<br>
-        ${c.level<c.maxLevel
-          ?`Цена: ⭐ ${cardPrice(c)}<br>
-            <button onclick="buyCard(${c.id})">Купить</button>`
-          :`<b>Макс</b>`}
-      </div>`
+    <div id="card-${c.id}" class="card ${c.rarity}">
+      <b>${c.name}</b><br>
+      Ур. ${c.level}/${c.maxLevel}<br>
+      ⭐ ${c.level*c.income}/сек<br>
+      ${c.level<c.maxLevel
+        ?`Цена: ⭐ ${cardPrice(c)}<br><button onclick="buyCard(${c.id})">Купить</button>`
+        :"<b>Макс</b>"}
+    </div>`
   })
 }
 
-/* START */
 loadGame()
-applyOfflineIncome()
 renderStats()
 renderCards()
 </script>
