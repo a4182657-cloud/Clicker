@@ -16,6 +16,7 @@
   --text:#fff;
   --accent:#ffd54f;
   --danger:#ff6b6b;
+  --gray:#777;
 }
 body{
   margin:0;
@@ -32,14 +33,8 @@ body{
   gap:10px;
 }
 
-.balance-box{
+.balance-box,.level-box{
   border:2px solid var(--accent);
-  border-radius:12px;
-  padding:6px 12px;
-  font-weight:600;
-}
-.level-box{
-  border:2px solid #555;
   border-radius:12px;
   padding:6px 12px;
   font-weight:600;
@@ -56,9 +51,14 @@ body{
   border:none;
   font-size:64px;
   background:radial-gradient(circle,#ffe082,#ffca28);
-  transition:.1s;
+  transition:.15s;
 }
 .click-btn:active{transform:scale(.92);}
+.click-btn.disabled{
+  background:#444;
+  color:#999;
+  box-shadow:none;
+}
 .star-glow{box-shadow:0 0 25px rgba(255,215,79,.8);}
 
 .upgrade-box{
@@ -76,7 +76,10 @@ button{
   font-size:14px;
   font-weight:600;
 }
-button:active{transform:scale(.95);}
+button:disabled{
+  background:#555;
+  color:#aaa;
+}
 
 .cards{
   display:flex;
@@ -88,17 +91,7 @@ button:active{transform:scale(.95);}
   padding:12px;
   border-radius:12px;
   text-align:center;
-  position:relative;
 }
-.card.buy{animation:pulse .3s;}
-.card.shake{animation:shake .3s;}
-
-.card .error{
-  color:var(--danger);
-  font-size:12px;
-  margin-top:6px;
-}
-
 .common{border:2px solid #9e9e9e;}
 .rare{border:2px solid #4fc3f7;}
 .epic{border:2px solid #ba68c8;}
@@ -120,28 +113,6 @@ button:active{transform:scale(.95);}
   font-size:18px;
   padding:14px 0;
 }
-
-input{
-  width:90%;
-  padding:10px;
-  border-radius:10px;
-  border:none;
-  margin-top:10px;
-  font-size:16px;
-}
-
-@keyframes pulse{
-  0%{transform:scale(1)}
-  50%{transform:scale(1.1)}
-  100%{transform:scale(1)}
-}
-@keyframes shake{
-  0%{transform:translateX(0)}
-  25%{transform:translateX(-5px)}
-  50%{transform:translateX(5px)}
-  75%{transform:translateX(-5px)}
-  100%{transform:translateX(0)}
-}
 </style>
 </head>
 
@@ -158,11 +129,17 @@ input{
     <div class="clicker">
       <button id="clickBtn" class="click-btn" onclick="clickCoin()">⭐</button>
 
+      <p>⚡ Энергия: <b><span id="energy">0</span> / <span id="maxEnergy">0</span></b></p>
       <p>Сила клика: <b><span id="clickPower">1</span></b></p>
 
       <div class="upgrade-box">
-        <div>Цена улучшения: ⭐ <span id="clickPrice">50</span></div>
+        <div>Цена улучшения клика: ⭐ <span id="clickPrice">0</span></div>
         <button onclick="upgradeClick()">Улучшить клик</button>
+      </div>
+
+      <div class="upgrade-box">
+        <div>Цена улучшения энергии: ⭐ <span id="energyPrice">0</span></div>
+        <button onclick="upgradeEnergy()">Улучшить энергию</button>
       </div>
     </div>
   </div>
@@ -172,28 +149,11 @@ input{
     <h3>🎁 NFT Подарки</h3>
     <div id="cards" class="cards"></div>
   </div>
-
-  <!-- PROFILE -->
-  <div id="screen-profile" class="screen">
-    <h3>📊 Профиль</h3>
-    <p>Всего заработано: ⭐ <b><span id="totalEarned">0</span></b></p>
-    <p>Доход в секунду: ⭐ <b><span id="incomePerSec">0</span></b></p>
-  </div>
-
-  <!-- PROMO -->
-  <div id="screen-promo" class="screen">
-    <h3>🎟 Промокоды</h3>
-    <input id="promoInput" placeholder="Введите промокод">
-    <button onclick="redeemPromo()">Активировать</button>
-    <p id="promoMessage"></p>
-  </div>
 </div>
 
 <div class="menu">
   <button onclick="showScreen('click')">🖱</button>
   <button onclick="showScreen('cards')">🎁</button>
-  <button onclick="showScreen('profile')">📊</button>
-  <button onclick="showScreen('promo')">🎟</button>
 </div>
 
 <script>
@@ -204,34 +164,26 @@ const player={
   totalEarned:0,
   level:1,
   clickPower:1,
-  clickLevel:1
+  clickLevel:1,
+  energy:500,
+  maxEnergy:500,
+  energyLevel:1
 }
 
 const cardData=[
-{id:1,name:"Common Box",basePrice:250,income:1,level:0,maxLevel:10,rarity:"common"},
-{id:2,name:"Silver Gift",basePrice:1200,income:3,level:0,maxLevel:10,rarity:"rare"},
-{id:3,name:"Golden Gift",basePrice:4500,income:8,level:0,maxLevel:10,rarity:"rare"},
-{id:4,name:"Crystal Box",basePrice:12000,income:20,level:0,maxLevel:10,rarity:"epic",unlock:2},
-{id:5,name:"Neon Gift",basePrice:30000,income:60,level:0,maxLevel:10,rarity:"epic",unlock:3},
-{id:6,name:"Epic Drop",basePrice:80000,income:150,level:0,maxLevel:10,rarity:"epic",unlock:4},
-{id:7,name:"Mythic Core",basePrice:200000,income:400,level:0,maxLevel:10,rarity:"legendary",unlock:5},
-{id:8,name:"Legendary Star",basePrice:500000,income:1000,level:0,maxLevel:10,rarity:"legendary",unlock:6},
-{id:9,name:"Divine Relic",basePrice:1200000,income:2500,level:0,maxLevel:10,rarity:"legendary",unlock:7},
-{id:10,name:"Ultimate NFT",basePrice:5000000,income:10000,level:0,maxLevel:10,rarity:"legendary",unlock:8}
+{id:1,name:"Common Gift",basePrice:500,income:2,level:0,maxLevel:10,rarity:"common"},
+{id:2,name:"Rare Gift",basePrice:2500,income:8,level:0,maxLevel:10,rarity:"rare"},
+{id:3,name:"Epic Gift",basePrice:12000,income:25,level:0,maxLevel:10,rarity:"epic"},
+{id:4,name:"Legendary Gift",basePrice:60000,income:100,level:0,maxLevel:10,rarity:"legendary"}
 ]
-
-const promoCodes={
-"STARS100K":true,"NFTGIFT":true,"TELEGRAM":true,"BONUSSTAR":true,"CLICKER":true,
-"DROP2025":true,"NFTPOWER":true,"STARHYPE":true,"GIFTBOX":true,"ULTRASTAR":true
-}
-
-function incomePerSecond(){
-  return cardData.reduce((s,c)=>s+c.level*c.income,0)
-}
 
 function updateLevel(){
   let xp=player.totalEarned,l=1,need=100
-  while(xp>=need){xp-=need;l++;need=Math.floor(100*Math.pow(l,1.5))}
+  while(xp>=need){
+    xp-=need
+    l++
+    need=Math.floor(100*Math.pow(l,1.5))
+  }
   player.level=l
 }
 
@@ -244,6 +196,8 @@ function getStarByLevel(l){
 }
 
 function clickCoin(){
+  if(player.energy<=0) return
+  player.energy--
   player.coins+=player.clickPower
   player.totalEarned+=player.clickPower
   updateLevel()
@@ -259,44 +213,23 @@ function upgradeClick(){
   renderStats()
 }
 
-function buyCard(id){
-  const c=cardData.find(x=>x.id===id)
-  const price=Math.floor(c.basePrice*Math.pow(1.5,c.level))
-  const el=document.getElementById("card-"+id)
-
-  if(player.coins<price){
-    el.classList.add("shake")
-    el.querySelector(".error").innerText="❌ Недостаточно ⭐"
-    setTimeout(()=>el.querySelector(".error").innerText="",1200)
-    return
-  }
-
-  player.coins-=price
-  c.level++
-  el.classList.add("buy")
-  setTimeout(()=>el.classList.remove("buy"),300)
-  renderStats()
-  renderCards()
+function energyUpgradePrice(){
+  return Math.floor(200*Math.pow(1.6,player.energyLevel))
 }
 
-function redeemPromo(){
-  const code=promoInput.value.trim().toUpperCase()
-  if(promoCodes[code]){
-    promoCodes[code]=false
-    player.coins+=100000
-    player.totalEarned+=100000
-    promoMessage.innerText="✅ +100 000 ⭐"
-    renderStats()
-  }else promoMessage.innerText="❌ Код недействителен"
-  promoInput.value=""
+function upgradeEnergy(){
+  const price=energyUpgradePrice()
+  if(player.coins<price)return
+  player.coins-=price
+  player.energyLevel++
+  player.maxEnergy+=200
+  player.energy=player.maxEnergy
+  renderStats()
 }
 
 setInterval(()=>{
-  const inc=incomePerSecond()
-  if(inc>0){
-    player.coins+=inc
-    player.totalEarned+=inc
-    updateLevel()
+  if(player.energy<player.maxEnergy){
+    player.energy++
     renderStats()
   }
 },1000)
@@ -311,27 +244,47 @@ function renderStats(){
   level.innerText=player.level
   clickPower.innerText=player.clickPower
   clickPrice.innerText=Math.floor(50*Math.pow(1.4,player.clickLevel))
-  totalEarned.innerText=player.totalEarned
-  incomePerSec.innerText=incomePerSecond()
+  energy.innerText=player.energy
+  maxEnergy.innerText=player.maxEnergy
+  energyPrice.innerText=energyUpgradePrice()
+
   clickBtn.innerText=getStarByLevel(player.level)
-  clickBtn.classList.toggle("star-glow",player.level>=30)
+
+  if(player.energy<=0){
+    clickBtn.classList.add("disabled")
+    clickBtn.disabled=true
+  }else{
+    clickBtn.classList.remove("disabled")
+    clickBtn.disabled=false
+  }
 }
 
 function renderCards(){
   cards.innerHTML=""
   cardData.forEach(c=>{
-    if(c.unlock && cardData.find(x=>x.id===c.unlock).level<10)return
+    const price=Math.floor(c.basePrice*Math.pow(1.5,c.level))
+    const isMax=c.level>=c.maxLevel
     cards.innerHTML+=`
-      <div id="card-${c.id}" class="card ${c.rarity}">
+      <div class="card ${c.rarity}">
         <b>${c.name}</b><br>
         Ур. ${c.level}/${c.maxLevel}<br>
         ⭐ ${c.level*c.income}/сек<br>
-        <button onclick="buyCard(${c.id})">
-          Купить (${Math.floor(c.basePrice*Math.pow(1.5,c.level))})
+        <button onclick="buyCard(${c.id})" ${isMax?"disabled":""}>
+          ${isMax?"MAX":"Купить ("+price+")"}
         </button>
-        <div class="error"></div>
       </div>`
   })
+}
+
+function buyCard(id){
+  const c=cardData.find(x=>x.id===id)
+  if(c.level>=c.maxLevel)return
+  const price=Math.floor(c.basePrice*Math.pow(1.5,c.level))
+  if(player.coins<price)return
+  player.coins-=price
+  c.level++
+  renderStats()
+  renderCards()
 }
 
 renderStats()
